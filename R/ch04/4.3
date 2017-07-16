@@ -1,0 +1,32 @@
+# should find out if the data has skewness
+library(AppliedPredictiveModeling)
+data(ChemicalManufacturingProcess)
+str(ChemicalManufacturingProcess)
+library(caret)
+
+# build pls model with all variables except Yield. Resampling method: repeated 10-fold cross-validation with 5 repeats. 
+# tunelength will show cost values from 2^-2 to 2^7
+
+plsProfileChemMod <- train(Yield ~., data = ChemicalManufacturingProcess, method = "pls", preProc = c("center", "scale"),tuneLength = 10,trControl = trainControl(method = "repeatedcv", repeats = 5))
+
+# can get the resampling summaries in the results component
+R2values <- plsProfileChemMod$results[,c("ncomp","Rsquared","RsquaredSD")]
+
+# create one more column called RsquaredSEM
+R2values$RsquaredSEM <- R2values$RsquaredSD/ sqrt(length(plsProfileChemMod$control$index))
+
+# plot graph. x-axis: ncomp. y-axis: accuracy. This graph will help determine smallest no. of PLS components under the "one-standard error"
+library(ggplot2)
+oneSE <- ggplot(R2values, aes(ncomp, Rsquared, ymin = Rsquared - RsquaredSEM, ymax=Rsquared))
+oneSE + geom_linerange() + geom_pointrange() + theme_bw()
+
+# table method to get the best ncomp value
+bestR2 <- subset(R2values, ncomp == which.max(R2values$Rsquared))
+bestR2$lb <- bestR2$Rsquared - bestR2$RsquaredSEM
+candR2 <- subset(R2values, Rsquared >= bestR2$lb & ncomp < bestR2$ncomp)
+bestR2 <- subset(R2values, ncomp == which.max(R2values$Rsquared))
+
+# Compute the tolerance values and determine optimal number of PLS components.
+R2values$tolerance <- (R2values$Rsquared - bestR2$Rsquared)/ bestR2$Rsquared * 100
+qplot(ncomp, tolerance, data = R2values)
+# or ggplot(R2values, aes(ncomp, tolerance))  + geom_point()
