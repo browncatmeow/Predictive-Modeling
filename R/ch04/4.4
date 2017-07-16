@@ -1,0 +1,36 @@
+library(caret)
+data(oil)
+str(oilType)
+
+# AIM: create a completely random sample of 60 oils
+
+sampNum <- floor(length(oilType)*.6)+1
+set.seed(629)
+oilSplits <- vector(mode = "list", length=  20)
+for (i in seq(along = oilSplits)) oilSplits[[i]] <-table(sample(oilType, size = sampNum))
+head(oilSplits,3)
+oilSplits <- do.call("rbind", oilSplits)
+head(oilSplits,3)
+
+#What does the distirbution of class percentages look like?
+summary(oilSplits/sampNum)
+
+#Aim: create stratified random sample using createDataPartition:
+set.seed(629)
+oilSplits2 <- createDataPartition(oilType, p=.60, times=20)
+oilSplits2 <- lapply(oilSplits2, function(x,y) table(y[x]), y=oilType)
+head(oilSplits2,3)
+oilSplits <- do.call("rbind", oilSplits)
+
+# Aim: compare variation of random sample vs stratified random sample.
+summary(oilSplits2/sampNum)
+
+# Aim: understanding the uncertainty of a test set by using a confidence interval
+getWidth <- function(values) {binom.test(x=floor(values["size"]*values["accuracy"])+1, n= values["size"])$conf.int}
+ciInfo <- expand.grid(size=10:30, accuracy=seq(.7,.95,by=0.01))
+ciWidths <- t(apply(ciInfo, 1, getWidth))
+head(ciWidths)
+# calculate the binomial distribution
+ciInfo$length <- ciWidths[,2] - ciWidths[,1]
+# plot levelplot
+levelplot(length ~ size*accuracy, data=ciInfo)
