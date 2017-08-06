@@ -1,5 +1,5 @@
 library(data.table)
-gbodata <- fread('/Users/widyaningsihtriyono/Downloads/LCS Q1 2017 Time Survey.csv’)
+gbodata <- fread('/Users/wt/Downloads/Time Survey.csv’)
 
 firstlvldata <- gbodata[, .SD, .SDcols = names(gbodata) %like% "first_level_time_"]
 
