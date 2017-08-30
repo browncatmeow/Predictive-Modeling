@@ -1,5 +1,5 @@
 library(data.table)
-gbodata <- fread('/Users/widyaningsihtriyono/Downloads/LCS Q1 2017 Time Survey.csv')
+gbodata <- fread('./Downloads/Time Survey.csv')
 subregion <- data.frame(sub_region = c('AUNZ','AUNZ','GRCN','GRCN','GRCN','IN','JP','KR','SEA','SEA','SEA','SEA','SEA','SEA','SEA'), service_country = c('AU','NZ','CN','HK','TW','IN','JP','KR','ID','MY','PH','PK','TH','SG','VN'), stringsAsFactors = FALSE)
 gbodatamodified <- merge(gbodata, subregion, by.x="country",by.y = "service_country", all.x=TRUE)
 common_cols <- names(gbodata[,1:13, with = FALSE])
